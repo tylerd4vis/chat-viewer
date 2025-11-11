@@ -4,31 +4,64 @@
 <meta charset="UTF-8">
 <title>Decoded Chat Viewer</title>
 <style>
-  body {font-family: system-ui, monospace; background: #f3f4f6; margin: 40px; line-height: 1.6; display: flex; flex-direction: column; gap: 10px;}
-  .msg {padding: 12px 18px; border-radius: 12px; max-width: 80%; white-space: pre-wrap;}
-  .user {background: #dbeafe; align-self: flex-end;}
-  .ai {background: #e5e7eb; align-self: flex-start;}
+  body {
+    font-family: system-ui, monospace;
+    background: #f3f4f6;
+    margin: 40px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    padding: 12px 18px;
+    border-radius: 12px;
+    max-width: 80%;
+    white-space: pre-wrap;
+  }
+  .user {
+    background: #dbeafe;
+    align-self: flex-end;
+  }
+  .ai {
+    background: #e5e7eb;
+    align-self: flex-start;
+  }
+  .empty {
+    color: #888;
+    font-style: italic;
+  }
 </style>
 </head>
 <body>
+  <p class="empty">Waiting for chat data...</p>
+
 <script>
-  const data = new URLSearchParams(window.location.search).get("data");
-  if (data) {
-    const msgs = JSON.parse(decodeURIComponent(data));
-    document.body.innerHTML = msgs.map(m => 
-      `<div class="msg ${m.role}">${m.text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`
-    ).join('');
-  } else {
-    document.body.innerHTML = '<p style="color:red;">No chat data found.</p>';
-  }
-  window.addEventListener('message', (e) => {
+window.addEventListener('message', e => {
   if (e.data && e.data.type === 'chatData') {
     const msgs = e.data.msgs || [];
-    document.body.innerHTML = msgs.map(m => 
-      `<div class="msg ${m.role}">${m.text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`
+    if (!msgs.length) {
+      document.body.innerHTML = '<p class="empty">No chat data received.</p>';
+      return;
+    }
+
+    document.body.innerHTML = msgs.map(m =>
+      `<div class="msg ${m.role}">
+         ${m.text.replace(/[&<>]/g, c => ({
+           '&':'&amp;','<':'&lt;','>':'&gt;'
+         }[c]))}
+       </div>`
     ).join('');
   }
 });
+
+// Optional: show fallback if no data received within a few seconds
+setTimeout(() => {
+  if (document.querySelector('.empty')) {
+    document.querySelector('.empty').textContent =
+      'No chat data received yet. Try re-running the bookmarklet.';
+  }
+}, 5000);
 </script>
 </body>
 </html>
