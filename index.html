@@ -21,6 +21,14 @@
   } else {
     document.body.innerHTML = '<p style="color:red;">No chat data found.</p>';
   }
+  window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'chatData') {
+    const msgs = e.data.msgs || [];
+    document.body.innerHTML = msgs.map(m => 
+      `<div class="msg ${m.role}">${m.text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`
+    ).join('');
+  }
+});
 </script>
 </body>
 </html>
